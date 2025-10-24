@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Vanilla JS DB</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+	<h1>Welcome to Vanilla JS DB</h1>
+	<p>I really hope firebase works!</p>
+
+	<div class="container">
+		<div class="left">
+			<h3>Send Data</h3>
+			<input type="number" id="idInput" placeholder="Enter an ID">
+			<input type="text" id="dataInput" placeholder="Enter some data">
+			<button id="insert">Insert</button>
+			<button id="update">Update</button>
+			<button id="remove">Remove</button>
+
+		</div>
+
+		<div class="right">
+			<h3>Receive Data</h3>
+			<input type="text" id="searchInput" placeholder="Search by ID">
+			<button id="receiveButton">Receive Data</button>
+			<div id="dataDisplay"></div>
+
+		</div>
+	</div>
+	
+</body>
+<script type="module">
+	// Import the functions you need from the SDKs you need
+	import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+	// TODO: Add SDKs for Firebase products that you want to use
+	// https://firebase.google.com/docs/web/setup#available-libraries
+
+	// Your web app's Firebase configuration
+	const firebaseConfig = {
+	apiKey: "AIzaSyDyw23yLjCMhdKhqNGxKW-z90XCiUZ4F5Y",
+	authDomain: "vanilla-js-d4f2f.firebaseapp.com",
+	databaseURL: "https://vanilla-js-d4f2f-default-rtdb.firebaseio.com",
+	projectId: "vanilla-js-d4f2f",
+	storageBucket: "vanilla-js-d4f2f.firebasestorage.app",
+	messagingSenderId: "789411057023",
+	appId: "1:789411057023:web:0d345726a346e1391ade4a"
+	};
+
+	// Initialize Firebase
+	const app = initializeApp(firebaseConfig);
+
+	import { getDatabase, set, get, update, remove, ref, child } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+
+	const db = getDatabase();
+
+	var enterID = document.getElementById("idInput");
+	var enterData = document.getElementById("dataInput");
+	var searchInput = document.getElementById("searchInput");
+
+	var insertButton = document.getElementById("insert");
+	var updateButton = document.getElementById("update");
+	var removeButton = document.getElementById("remove");
+	var receiveButton = document.getElementById("receiveButton");
+
+	var dataDisplay = document.getElementById("dataDisplay");
+
+	function insertData() {
+		set(ref(db, "object/" + enterID.value), {
+			Data: enterData.value
+		})
+		.then(() => {
+			console.log("Data inserted successfully!");
+		})
+		.catch((error) => {
+			console.error("Error inserting data: ", error);
+		});
+	}
+
+	function updateData() {
+		update(ref(db, "object/" + enterID.value), {
+			Data: enterData.value
+		})
+		.then(() => {
+			console.log("Data updated successfully!");
+		})
+		.catch((error) => {
+			console.error("Error updating data: ", error);
+		});
+	}
+
+	function removeData() {
+		remove(ref(db, "object/" + enterID.value))
+		.then(() => {
+			console.log("Data removed successfully!");
+		})
+		.catch((error) => {
+			console.error("Error removing data: ", error);
+		});
+	}
+
+	function findData() {
+		const dbRef = ref(db);
+		get(child(dbRef, "object/" + searchInput.value))
+		.then((snapshot) => {
+			if (snapshot.exists()) {
+				dataDisplay.innerText = "Data: " + snapshot.val().Data;
+			} else {
+				dataDisplay.innerText = "No data found";
+			}
+		}).catch((error) => {
+			console.error("Error finding data: ", error);
+		});
+	}
+
+	// event listeners for buttons
+	insertButton.addEventListener("click", insertData);
+	updateButton.addEventListener("click", updateData);
+	removeButton.addEventListener("click", removeData);
+	receiveButton.addEventListener("click", findData);
+
+</script>
+</html>

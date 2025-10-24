@@ -3,34 +3,26 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Vanilla JS DB</title>
 	<link rel="stylesheet" href="style.css">
+	<title>VAnilla JS DB</title>
 </head>
 <body>
-
-	<h1>Welcome to Vanilla JS DB</h1>
-	<p>I really hope firebase works!</p>
+	<h1>Welcome to Vanilla JS DB Test</h1>
+	<p>Testing the Firebase DB's with a live chat</p>
 
 	<div class="container">
 		<div class="left">
-			<h3>Send Data</h3>
-			<input type="number" id="idInput" placeholder="Enter an ID">
-			<input type="text" id="dataInput" placeholder="Enter some data">
-			<button id="insert">Insert</button>
-			<button id="update">Update</button>
-			<button id="remove">Remove</button>
-
+			<h3>Enter Your Username</h3>
+			<input type="text" id="username-input" placeholder="Username">
+			<h3>What would you like to say?</h3>
+			<input type="text" id="message-input" placeholder="Type your message here...">
+			<button id="send-button">Send</button>
 		</div>
-
-		<div class="right">
-			<h3>Receive Data</h3>
-			<input type="text" id="searchInput" placeholder="Search by ID">
-			<button id="receiveButton">Receive Data</button>
-			<div id="dataDisplay"></div>
-
+		<div class="chat-box">
+			<div id="messages"></div>
 		</div>
 	</div>
-	
+
 </body>
 <script type="module">
 	// Import the functions you need from the SDKs you need
@@ -56,70 +48,51 @@
 
 	const db = getDatabase();
 
-	var enterID = document.getElementById("idInput");
-	var enterData = document.getElementById("dataInput");
-	var searchInput = document.getElementById("searchInput");
+	var messages = document.getElementById("messages");
+	var username = document.getElementById("username-input");
+	var messageInput = document.getElementById("message-input");
 
-	var insertButton = document.getElementById("insert");
-	var updateButton = document.getElementById("update");
-	var removeButton = document.getElementById("remove");
-	var receiveButton = document.getElementById("receiveButton");
+	var sendButton = document.getElementById("send-button");
 
-	var dataDisplay = document.getElementById("dataDisplay");
 
-	function insertData() {
-		set(ref(db, "object/" + enterID.value), {
-			Data: enterData.value
-		})
-		.then(() => {
-			console.log("Data inserted successfully!");
-		})
-		.catch((error) => {
-			console.error("Error inserting data: ", error);
-		});
+	function sendMessage() {
+		var user = username.value.trim();
+		var message = messageInput.value.trim();
+		if (user && message) {
+			var newMessageRef = ref(db, 'messages/' + Date.now());
+			set(newMessageRef, {
+				username: user,
+				date: new Date().toLocaleString(),
+				time: Date.now(),
+				message: message
+			}).then(() => {
+				messageInput.value = '';
+			});
+		}
 	}
 
-	function updateData() {
-		update(ref(db, "object/" + enterID.value), {
-			Data: enterData.value
-		})
-		.then(() => {
-			console.log("Data updated successfully!");
-		})
-		.catch((error) => {
-			console.error("Error updating data: ", error);
-		});
-	}
-
-	function removeData() {
-		remove(ref(db, "object/" + enterID.value))
-		.then(() => {
-			console.log("Data removed successfully!");
-		})
-		.catch((error) => {
-			console.error("Error removing data: ", error);
-		});
-	}
-
-	function findData() {
+	function updateChat() {
 		const dbRef = ref(db);
-		get(child(dbRef, "object/" + searchInput.value))
-		.then((snapshot) => {
+		get(child(dbRef, 'messages')).then((snapshot) => {
 			if (snapshot.exists()) {
-				dataDisplay.innerText = "Data: " + snapshot.val().Data;
-			} else {
-				dataDisplay.innerText = "No data found";
+				messages.innerHTML = '';
+				const data = snapshot.val();
+				const sortedKeys = Object.keys(data).sort((a, b) => data[a].time - data[b].time);
+				sortedKeys.forEach(key => {
+					const msg = data[key];
+					const messageElement = document.createElement('div');
+					messageElement.classList.add('message');
+					messageElement.innerHTML = `<strong>${msg.username}</strong> <em>${msg.date}</em><br>${msg.message}`;
+					messages.appendChild(messageElement);
+				});
 			}
-		}).catch((error) => {
-			console.error("Error finding data: ", error);
 		});
 	}
 
-	// event listeners for buttons
-	insertButton.addEventListener("click", insertData);
-	updateButton.addEventListener("click", updateData);
-	removeButton.addEventListener("click", removeData);
-	receiveButton.addEventListener("click", findData);
+	// event listeners
+	sendButton.addEventListener('click', sendMessage);
+	updateChat()
+	setInterval(updateChat, 1000);
 
 </script>
 </html>
